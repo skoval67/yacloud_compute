@@ -1,6 +1,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-DOCUMENTATION = '''
+DOCUMENTATION = r'''
 
     name: yacloud_compute
     plugin_type: inventory
@@ -11,7 +11,7 @@ DOCUMENTATION = '''
         - inventory_cache
         - constructed
     description:
-        - Get inventory hosts from Yandex Cloud
+        - Retrieves virtual machines from Yandex Cloud Compute API
         - Uses a YAML configuration file
     options:
         plugin:
@@ -35,10 +35,11 @@ DOCUMENTATION = '''
             default: ""
         use_public_ip:
             description: Use of an external address, if the virtual machine has one.
+            type: bool
             default: False
 '''
 
-EXAMPLES = '''
+EXAMPLES = r'''
     plugin: yacloud_compute
     service_account_file: key.json
     yacloud_clouds:
@@ -52,8 +53,7 @@ EXAMPLES = '''
 '''
 
 from ansible.errors import AnsibleError
-from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
-from ansible.module_utils.common.text.converters import to_native
+from ansible.plugins.inventory import BaseInventoryPlugin
 import os
 import json
 
@@ -69,7 +69,7 @@ try:
 except ImportError:
     raise AnsibleError('The yacloud dynamic inventory plugin requires yandexcloud')
 
-class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
+class InventoryModule(BaseInventoryPlugin):
 
     NAME = 'yacloud_compute'
 
@@ -124,7 +124,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 iam_token = os.getenv("YC_TOKEN")
                 if not iam_token:
                     raise AnsibleError("YC_TOKEN environment variable is not set")
-                sdk = yandexcloud.SDK(iam_token=iam_token)        # if not token:
+                sdk = yandexcloud.SDK(iam_token=iam_token)
         except Exception as e:
             raise AnsibleError(f"Failed to initialize Yandex Cloud SDK: {e}") from e
 
@@ -154,7 +154,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
             hostname = instance["name"]
             self.inventory.add_host(hostname, group=group)
-            self.inventory.set_variable(hostname, "ansible_host", to_native(ip))
+            self.inventory.set_variable(hostname, "ansible_host", ip)
 
     def parse(self, inventory, loader, path, cache=True):
         super(InventoryModule, self).parse(inventory, loader, path)
